@@ -78,9 +78,9 @@ exports.getInterviewSession = async (req, res, next) => {
     }
 };
 
-// @ desc   Add interview session
-// @ route  POST /api/v1/companies/:companyid/interviews
-// @ access Private
+// @desc    Add interview session
+// @route   POST /api/v1/companies/:companyid/interviews
+// @access  Private
 exports.addInterviewSession = async (req, res, next) => {
     try {
         req.body.company = req.params.companyid;
@@ -116,6 +116,15 @@ exports.addInterviewSession = async (req, res, next) => {
     }
     catch (error) {
         console.log(error);
+
+        if (error.name === 'ValidationError') {
+            const message = Object.values(error.errors).map(val => val.message).join(', ');
+            return res.status(400).json({
+                success: false,
+                message: message
+            });
+        }
+
         return res.status(500).json({
             success: false,
             message: "Cannot create Interview"
@@ -156,6 +165,15 @@ exports.updateInterviewSession = async (req, res, next) => {
         });
     }
     catch (error) {
+
+        if (error.name === 'ValidationError') {
+            const message = Object.values(error.errors).map(val => val.message).join(', ');
+            return res.status(400).json({
+                success: false,
+                message: message
+            });
+        }
+
         console.log(error);
         return res.status(500).json({
             success: false,
