@@ -58,6 +58,14 @@ exports.getInterviewSession = async (req, res, next) => {
             select: 'name description tel address website'
         });
 
+        //Make sure user is the interview owner
+        if (interview.user.toString() !== req.user.id && req.user.role !== 'admin') {
+            return res.status(401).json({
+                success:false,
+                message:`User ${req.user.id} is not authorized to update this interview`
+            });
+        }
+
         if (!interview) {
             return res.status(404).json({
                 success:false,
