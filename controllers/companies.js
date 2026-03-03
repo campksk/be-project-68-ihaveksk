@@ -109,11 +109,27 @@ exports.getCompany = async (req, res, next) => {
 // @route   POST /api/v1/companies
 // @access  Private
 exports.createCompany = async (req, res, next) => {
-    const company = await Company.create(req.body);
-    res.status(201).json({
-        success: true,
-        data: company
-    });
+    try{
+        const company = await Company.create(req.body);
+        res.status(201).json({
+            success: true,
+            data: company
+        });
+    }
+    catch (err) {
+        if (err.name === 'ValidationError') {
+            const message = Object.values(err.errors).map(val => val.message).join(', ');
+            return res.status(400).json({
+                success: false,
+                message: message
+            });
+        }
+
+        res.status(400).json({
+            success: false
+        });
+    }
+    
 }
 
 // @desc    Update single company
@@ -138,6 +154,14 @@ exports.updateCompany = async (req, res, next) => {
         });
     }
     catch (err) {
+        if (err.name === 'ValidationError') {
+            const message = Object.values(err.errors).map(val => val.message).join(', ');
+            return res.status(400).json({
+                success: false,
+                message: message
+            });
+        }
+
         res.status(400).json({
             success: false
         });

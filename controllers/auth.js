@@ -19,6 +19,14 @@ exports.register = async (req, res, next) => {
         sendTokenResponse (user, 200, res);
     }
     catch (err) {
+        if (err.name === 'ValidationError') {
+            const message = Object.values(err.errors).map(val => val.message).join(', ');
+            return res.status(400).json({
+                success: false,
+                message: message
+            });
+        }
+
         res.status(400).json({
             success: false,            
         });
@@ -26,6 +34,9 @@ exports.register = async (req, res, next) => {
     }
 }
 
+// @desc    Login user
+// @route   POST /api/v1/auth/login
+// @access  Public
 exports.login = async (req, res, next) => {
     try {
         const { email, password } = req.body;
