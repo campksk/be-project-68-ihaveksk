@@ -122,3 +122,51 @@ exports.logout = async(req, res, next) => {
         data: {}
     });
 };
+
+// @desc    Update password
+// @route   PUT /api/v1/auth/updatepassword
+// @access  Private
+exports.updatePassword = async(req, res, next) => {
+    try {
+        const { currentPassword, newPassword } = req.body;
+
+        if (!currentPassword || !newPassword) {
+            return res.status(400).json({
+                success: false,
+                msg: 'Please provide current and new password'
+            });
+        }
+
+        const user = await User.findById(req.user.id).select('+password');
+
+        const isMatch = await user.matchPassword(currentPassword);
+        if (!isMatch) {
+            return res.status(401).json({
+                success: false,
+                msg: 'Current password is incorrect'
+            });
+        }
+
+        user.password = newPassword;
+
+        await user.save();
+
+        sendTokenResponse(user, 200, res);
+    }
+    catch (err) {
+        console.log(err.stack);
+
+        if (err.name === 'ValidationError') {
+            const meessage = Object.values(err.errors).map(val => val.message).join(', ');
+            return res.status(400).json({
+                success: false,
+                msg: meessage
+            });
+        }
+
+        res.status(500).json({
+            success: false,
+            msg: 'Server error'
+        });
+    }
+}
