@@ -9,24 +9,39 @@ exports.getInterviewSessions = async (req, res, next) => {
 
     //General users can see only their interview sessions!
     if(req.user.role !== 'admin') {
-        query = Interview.find({ user: req.user.id }).populate({
-            path: 'company',
-            select: 'name address website tel description'
-        });
+        query = Interview.find({ user: req.user.id })
+            .populate({
+                path: 'company',
+                select: 'name address website tel description'
+            })
+            .populate({
+                path: 'user',
+                select: 'name email'
+            });
     }
     else {
         if (req.params.companyid) {
             console.log(req.params.companyid);
-            query = Interview.find({ company: req.params.companyid }).populate({
-                path: "company",
-                select: "name address website tel description",
-            });
+            query = Interview.find({ company: req.params.companyid })
+                .populate({
+                    path: "company",
+                    select: "name address website tel description",
+                })
+                .populate({
+                    path: 'user',
+                    select: 'name email'
+                });
         }
         else {
-            query = Interview.find().populate({
-                path: 'company',
-                select: 'name address website tel description'
-            });
+            query = Interview.find()
+                .populate({
+                    path: 'company',
+                    select: 'name address website tel description'
+                })
+                .populate({
+                    path: 'user',
+                    select: 'name email'
+                });
         }
     }
 
@@ -53,13 +68,18 @@ exports.getInterviewSessions = async (req, res, next) => {
 // @access  Public
 exports.getInterviewSession = async (req, res, next) => {
     try {
-        const interview = await Interview.findById(req.params.id).populate({
-            path: 'company',
-            select: 'name description tel address website'
-        });
+        const interview = await Interview.findById(req.params.id)
+            .populate({
+                path: 'company',
+                select: 'name description tel address website'
+            })
+            .populate({
+                path: 'user',
+                select: 'name email'
+            });
 
         //Make sure user is the interview owner
-        if (interview.user.toString() !== req.user.id && req.user.role !== 'admin') {
+        if (interview.user._id.toString() !== req.user.id && req.user.role !== 'admin') {
             return res.status(401).json({
                 success:false,
                 message:`User ${req.user.id} is not authorized to update this interview`
@@ -155,6 +175,8 @@ exports.updateInterviewSession = async (req, res, next) => {
         }
 
         //Make sure user is the interview owner
+        // หมายเหตุ: หลังจากแก้ populate user ด้านบน ทำให้โครงสร้างเปลี่ยนไปนิดนึง เราอาจจะไม่ต้อง populate ตอนแก้ไข
+        // แต่ถ้าเกิดว่าอยากเช็ค สามารถเช็คผ่าน object แบบด้านล่างได้เลย
         if (interview.user.toString() !== req.user.id && req.user.role !== 'admin') {
             return res.status(401).json({
                 success:false,
