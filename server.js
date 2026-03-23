@@ -24,7 +24,12 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Sanitize data
-app.use(mongoSanitize());
+app.use((req, res, next) => {
+    if (req.body) mongoSanitize.sanitize(req.body);
+    if (req.params) mongoSanitize.sanitize(req.params);
+    if (req.headers) mongoSanitize.sanitize(req.headers);
+    next();
+});
 
 //Set security headers
 app.use(helmet());
